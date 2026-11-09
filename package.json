@@ -1,0 +1,42 @@
+{
+  "name": "cleanerdev",
+  "version": "1.0.0",
+  "description": "Limpiador de caches, gestor de procesos, almacenamiento y desinstalador para Windows",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "dev.cleanerdev.app",
+    "productName": "CleanerDev",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "requireAdministrator",
+      "artifactName": "CleanerDev.exe"
+    },
+    "portable": {
+      "requestExecutionLevel": "admin",
+      "artifactName": "CleanerDev.exe"
+    }
+  },
+  "author": "CleanerDev"
+}

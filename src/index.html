@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:">
+<title>CleanerDev</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<aside>
+  <h1>Cleaner<span>Dev</span></h1>
+  <nav>
+    <button data-tab="clean" class="active">🧹 Limpieza</button>
+    <button data-tab="proc">⚙️ Procesos</button>
+    <button data-tab="disk">💽 Almacenamiento</button>
+    <button data-tab="apps">📦 Aplicaciones</button>
+  </nav>
+  <div class="admin">
+    <div id="adminBadge" class="badge">...</div>
+    <button id="btnAdmin" class="hidden">Reiniciar como administrador</button>
+  </div>
+</aside>
+
+<main>
+  <!-- LIMPIEZA -->
+  <section id="tab-clean" class="tab active">
+    <header><h2>Limpieza y memoria RAM</h2></header>
+
+    <!-- RAM -->
+    <div class="panel">
+      <div class="panel-head"><h3>🧠 Memoria RAM</h3><span class="muted" id="ramLive">en vivo</span></div>
+      <div class="ram-grid">
+        <div class="ram-chart"><div id="ramPie"></div></div>
+        <div class="ram-side">
+          <div class="ram-stats" id="ramStats"></div>
+          <button id="ramClean" class="primary big">🚀 Limpieza de RAM</button>
+          <p class="muted small">Recorta la memoria que los programas inactivos no estan usando (no cierra nada; el programa que tienes en primer plano no se toca) y vacia la cache DNS. Con permisos de administrador tambien vacia la cache de espera del sistema.</p>
+          <div id="ramResult" class="result hidden"></div>
+        </div>
+        <ul id="ramLegend" class="legend"></ul>
+      </div>
+    </div>
+
+    <!-- PROCESOS INACTIVOS -->
+    <div class="panel">
+      <div class="panel-head"><h3>💤 Procesos que no estan en uso</h3>
+        <div><button id="idleScan">Buscar procesos inactivos</button> <button id="idleKill" class="danger" disabled>Cerrar seleccionados</button></div>
+      </div>
+      <p class="muted small" id="idleSummary">Busca procesos sin ventana y sin actividad, de programas que no tienes abiertos. Mide la actividad durante unos segundos. Revisa la lista antes de cerrar: algunos pueden ser servicios que necesitas.</p>
+      <table class="procs"><thead><tr><th></th><th>Proceso</th><th>Software</th><th>Funcion</th><th class="r">Memoria</th></tr></thead><tbody id="idleBody"></tbody></table>
+    </div>
+
+    <!-- CACHES DE DISCO -->
+    <div class="panel">
+      <div class="panel-head"><h3>🧹 Caches y temporales en disco</h3>
+        <div><button id="cleanScan">Analizar</button> <button id="cleanRun" class="danger" disabled>Limpiar seleccionado</button></div>
+      </div>
+      <p class="muted small" id="cleanSummary">Pulsa "Analizar" para calcular cuanto espacio se puede liberar. Solo se borran archivos que no estan en uso.</p>
+      <table><thead><tr><th><input type="checkbox" id="cleanAll"></th><th>Categoria</th><th>Ubicacion</th><th class="r">Tamano</th></tr></thead><tbody id="cleanBody"></tbody></table>
+    </div>
+  </section>
+
+  <!-- PROCESOS -->
+  <section id="tab-proc" class="tab">
+    <header><h2>Procesos</h2>
+      <div><input id="procFilter" placeholder="Filtrar por nombre o ventana..."> <button id="procGroup" title="Agrupa los procesos por programa, del mas pesado al mas liviano">📊 Ordenar por software</button> <button id="procRefresh">Actualizar</button> <button id="procKill" class="danger" disabled>Finalizar seleccionados</button></div>
+    </header>
+    <p class="muted" id="procSummary"></p>
+    <table class="procs"><thead><tr><th></th><th data-sort="name">Proceso</th><th data-sort="software">Software</th><th data-sort="desc">Funcion</th><th data-sort="pid" class="r">PID</th><th data-sort="mem" class="r">Memoria</th><th data-sort="cpu" class="r">CPU (s)</th></tr></thead><tbody id="procBody"></tbody></table>
+  </section>
+
+  <!-- ALMACENAMIENTO -->
+  <section id="tab-disk" class="tab">
+    <header><h2>Almacenamiento</h2><div><button id="diskRefresh">Actualizar</button></div></header>
+    <div id="disks" class="cards"></div>
+    <div id="physical" class="muted"></div>
+    <div id="explorer" class="hidden">
+      <div class="crumb"><button id="diskBack" title="Volver a la carpeta anterior (Alt+← o boton atras del raton)" disabled>← Atras</button><button id="diskFwd" title="Ir a la carpeta siguiente (Alt+→)" disabled>→</button> <button id="diskUp" title="Ir a la carpeta contenedora">⬆ Subir</button> <code id="diskPath"></code> <button id="diskReload" class="primary">🔄 Actualizar</button></div>
+      <div id="scanPanel" class="scan">
+        <div class="progress"><div id="scanFill"></div></div>
+        <div class="scan-row"><span id="scanText"></span><button id="scanCancel">Cancelar</button></div>
+        <div id="scanCurrent" class="muted"></div>
+      </div>
+      <div id="scanResult" class="result hidden"></div>
+      <div class="bar-actions">
+        <label class="inline"><input type="checkbox" id="diskForce"> Eliminar con fuerza (cierra procesos, toma propiedad; requiere admin)</label>
+        <button id="diskDelete" class="danger" disabled>Eliminar seleccionados</button>
+      </div>
+      <div class="split">
+        <table><thead><tr><th></th><th data-dsort="name">Nombre</th><th data-dsort="size" class="r" title="Espacio realmente ocupado en el disco (clusters, compresion, archivos en la nube)">En disco ▼</th><th data-dsort="logical" class="r" title="Suma del tamano de los datos de los archivos">Tamano</th><th data-dsort="size" class="grow">% del total</th></tr></thead><tbody id="diskBody"></tbody></table>
+        <aside class="piebox"><div id="pie"></div><ul id="legend"></ul></aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- APLICACIONES -->
+  <section id="tab-apps" class="tab">
+    <header><h2>Aplicaciones instaladas</h2>
+      <div><input id="appsFilter" placeholder="Buscar aplicacion..."> <label class="inline"><input type="checkbox" id="appsSilent"> Silencioso</label> <button id="appsRefresh">Actualizar</button></div>
+    </header>
+    <p class="muted" id="appsSummary"></p>
+    <table><thead><tr><th>Nombre</th><th>Editor</th><th>Version</th><th class="r">Tamano</th><th></th></tr></thead><tbody id="appsBody"></tbody></table>
+  </section>
+</main>
+
+<div id="modal" class="hidden"><div class="modal-box"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modal-actions" id="modalActions"></div></div></div>
+<div id="loader" class="hidden"><div class="loader-box"><div class="loader-icon"></div><div id="loaderText"></div><div id="loaderSub" class="muted small"></div></div></div>
+<div id="toast"></div>
+<script src="renderer.js"></script>
+</body>
+</html>
